@@ -78,6 +78,13 @@ export class DayComponent {
     return `Отмечено: ${e.modifiedBy}, ${when.toLocaleString('ru-RU')}`;
   }
 
+  readonly isDayAccounted = computed(() => !!this.day()?.accounted);
+
+  hasNoAttendance(studentId: string): boolean {
+    const rec = this.day()?.attendance?.[studentId];
+    return !rec || Object.values(rec).every((e) => !e);
+  }
+
   toggle(studentId: string, timeSlot: string): void {
     if (this.isAuthenticated()) {
       this.schedule.toggleAttendance(this.groupId, this.date, studentId, timeSlot);

@@ -30,7 +30,7 @@
     </thead>
     <tbody>
       @for (student of sortedStudents(); track student.id) {
-        <tr>
+        <tr [class.no-attendance]="isDayAccounted() && hasNoAttendance(student.id)">
           <td class="name-cell">{{ student.lastName }} {{ student.firstName }} {{ student.patronymic }}</td>
           <td class="master-cell">
             <mat-checkbox
