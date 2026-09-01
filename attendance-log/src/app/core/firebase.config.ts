@@ -1,4 +1,3 @@
-// Web app's Firebase configuration
 export const firebaseConfig = {
   apiKey: 'AIzaSyDMwd5Nhar76_SfCEIbcxFgmTSG6eJPz-g',
   authDomain: 'attendance-log-3a673.firebaseapp.com',

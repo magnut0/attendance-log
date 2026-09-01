@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -16,6 +16,8 @@ import { StudentGroupService } from '../../core/services/student-group.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ScheduleDayService } from '../../core/services/schedule-day.service';
 import { DayFlags } from '../../core/models';
+
+const SELECTED_GROUP_KEY = 'selectedGroupId';
 
 @Component({
   selector: 'app-home',
@@ -47,9 +49,27 @@ export class HomeComponent {
   readonly groups = toSignal(this.groupsService.list$(), { initialValue: [] });
   readonly isDark = this.theme.isDark;
 
-  selectedGroupId = signal<string>('');
+  selectedGroupId = signal<string>(localStorage.getItem(SELECTED_GROUP_KEY) ?? '');
   displayedMonth = signal<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   activeMode = signal<'accounted' | 'transferred' | null>(null);
+
+  constructor() {
+    effect(() => {
+      const id = this.selectedGroupId();
+      if (id) {
+        localStorage.setItem(SELECTED_GROUP_KEY, id);
+      } else {
+        localStorage.removeItem(SELECTED_GROUP_KEY);
+      }
+    });
+    effect(() => {
+      const groups = this.groups();
+      const id = this.selectedGroupId();
+      if (groups.length > 0 && id && !groups.some((g) => g.id === id)) {
+        this.selectedGroupId.set('');
+      }
+    });
+  }
 
   private selectedGroup$ = toObservable(this.selectedGroupId);
   private displayedMonth$ = toObservable(this.displayedMonth);
