@@ -78,22 +78,26 @@
     </div>
     @for (week of weeks(); track $index) {
       <div class="week">
-        @for (day of week; track day.date) {
-          <div
-            class="day"
-            [class.disabled]="!day.enabled"
-            [class.sunday]="day.isSunday"
-            [class.inactive-saturday]="day.isSaturday && !saturdayIsStudyDay()"
-            [class.red]="day.enabled && day.isPast && !day.accounted"
-            [class.green]="day.enabled && day.isPast && day.accounted"
-            (click)="onDayClick(day)"
-            [matTooltip]="day.date"
-          >
-            <span class="day-number">{{ day.number }}</span>
-            @if (day.transferred) {
-              <mat-icon class="paper-icon">description</mat-icon>
-            }
-          </div>
+        @for (day of week; track $index) {
+          @if (day) {
+            <div
+              class="day"
+              [class.disabled]="!day.enabled"
+              [class.sunday]="day.isSunday"
+              [class.inactive-saturday]="day.isSaturday && !saturdayIsStudyDay()"
+              [class.red]="day.enabled && day.isPast && !day.accounted"
+              [class.green]="day.enabled && day.isPast && day.accounted"
+              (click)="onDayClick(day)"
+              [matTooltip]="day.date"
+            >
+              <span class="day-number">{{ day.number }}</span>
+              @if (day.transferred) {
+                <mat-icon class="paper-icon">description</mat-icon>
+              }
+            </div>
+          } @else {
+            <div class="day-placeholder"></div>
+          }
         }
       </div>
     }

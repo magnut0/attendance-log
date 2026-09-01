@@ -16,6 +16,7 @@ import { StudentGroupService } from '../../core/services/student-group.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ScheduleDayService } from '../../core/services/schedule-day.service';
 import { DayFlags } from '../../core/models';
+import { buildCalendarWeeks, CalendarDay } from './calendar';
 
 const SELECTED_GROUP_KEY = 'selectedGroupId';
 
@@ -157,60 +158,14 @@ export class HomeComponent {
       : this.router.navigate(['/day', gid, day.date]);
   }
 
-  readonly weeks = computed<CalendarDay[][]>(() => {
-    const year = this.displayedMonth().getFullYear();
-    const month = this.displayedMonth().getMonth();
-    const first = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const flags = this.monthFlags();
-
-    const cells: (CalendarDay | null)[] = [];
-    for (let i = 0; i < first; i++) {
-      cells.push(null);
-    }
-    const todayNow = new Date();
-    const todayStart = new Date(todayNow.getFullYear(), todayNow.getMonth(), todayNow.getDate());
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
-      const dayOfWeek = date.getDay();
-      const isSaturday = dayOfWeek === 6;
-      const isSunday = dayOfWeek === 0;
-      const enabled = !isSunday && !(isSaturday && !this.saturdayIsStudyDay());
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const flag = flags.get(dateStr);
-      cells.push({
-        number: d,
-        date: dateStr,
-        enabled,
-        isSunday,
-        isSaturday,
-        isPast: date < todayStart,
-        accounted: flag?.accounted ?? false,
-        transferred: flag?.transferred ?? false,
-      });
-    }
-    while (cells.length % 7 !== 0) {
-      cells.push(null);
-    }
-
-    const weeks: CalendarDay[][] = [];
-    for (let i = 0; i < cells.length; i += 7) {
-      weeks.push(cells.slice(i, i + 7).filter(Boolean) as CalendarDay[]);
-    }
-    return weeks;
-  });
-}
-
-export interface CalendarDay {
-  number: number;
-  date: string;
-  enabled: boolean;
-  isSunday: boolean;
-  isSaturday: boolean;
-  isPast: boolean;
-  accounted: boolean;
-  transferred: boolean;
+  readonly weeks = computed<(CalendarDay | null)[][]>(() =>
+    buildCalendarWeeks(
+      this.displayedMonth().getFullYear(),
+      this.displayedMonth().getMonth(),
+      this.monthFlags(),
+      this.saturdayIsStudyDay(),
+    ),
+  );
 }
 
 export function monthKey(date: Date): string {
