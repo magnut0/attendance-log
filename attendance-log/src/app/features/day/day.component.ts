@@ -49,7 +49,16 @@ export class DayComponent {
     [...this.students()].sort((a, b) => a.lastName.localeCompare(b.lastName, 'ru')),
   );
 
+  readonly enabledTimes = computed(() => this.times.filter((t) => !this.isTimeSlotDisabled(t)));
+
+  isTimeSlotDisabled(timeSlot: string): boolean {
+    return !!this.day()?.disabledTimeSlots?.includes(timeSlot);
+  }
+
   isPresent(studentId: string, timeSlot: string): boolean {
+    if (this.isTimeSlotDisabled(timeSlot)) {
+      return false;
+    }
     return !!this.day()?.attendance?.[studentId]?.[timeSlot]?.present;
   }
 
@@ -72,6 +81,31 @@ export class DayComponent {
   toggle(studentId: string, timeSlot: string): void {
     if (this.isAuthenticated()) {
       this.schedule.toggleAttendance(this.groupId, this.date, studentId, timeSlot);
+    }
+  }
+
+  rowChecked(studentId: string): boolean {
+    const enabled = this.enabledTimes();
+    return enabled.length > 0 && enabled.every((t) => this.isPresent(studentId, t));
+  }
+
+  rowIndeterminate(studentId: string): boolean {
+    const enabled = this.enabledTimes();
+    const checked = enabled.filter((t) => this.isPresent(studentId, t)).length;
+    return checked > 0 && checked < enabled.length;
+  }
+
+  toggleRow(studentId: string): void {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+    const enabled = this.enabledTimes();
+    this.schedule.setAttendanceForSlots(this.groupId, this.date, studentId, enabled, !this.rowChecked(studentId));
+  }
+
+  toggleTimeSlot(timeSlot: string): void {
+    if (this.isAuthenticated()) {
+      this.schedule.toggleTimeSlot(this.groupId, this.date, timeSlot);
     }
   }
 }

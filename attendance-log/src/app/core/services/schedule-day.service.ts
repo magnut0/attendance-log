@@ -65,8 +65,21 @@ export class ScheduleDayService {
       date,
       accounted: false,
       transferred: false,
+      disabledTimeSlots: [],
       attendance: {},
     });
+  }
+
+  async toggleTimeSlot(groupId: string, date: string, timeSlot: string): Promise<void> {
+    const ref = dayRef(groupId, date);
+    const snap = await getDoc(ref).catch(() => null);
+    if (!snap || !snap.exists()) {
+      await this.initDay(groupId, date);
+    }
+    const data = (await getDoc(ref)).data() as ScheduleDay | undefined;
+    const current = data?.disabledTimeSlots ?? [];
+    const next = current.includes(timeSlot) ? current.filter((t) => t !== timeSlot) : [...current, timeSlot];
+    await updateDoc(ref, { disabledTimeSlots: next });
   }
 
   async toggleAttendance(groupId: string, date: string, studentId: string, timeSlot: string): Promise<void> {
@@ -109,6 +122,58 @@ export class ScheduleDayService {
         date,
         accounted: hasAny,
         transferred: data?.transferred ?? false,
+        attendance: updatedAttendance,
+      },
+      { merge: true },
+    );
+  }
+
+  async setAttendanceForSlots(
+    groupId: string,
+    date: string,
+    studentId: string,
+    timeSlots: string[],
+    present: boolean,
+  ): Promise<void> {
+    if (!timeSlots.length) {
+      return;
+    }
+    const ref = dayRef(groupId, date);
+    const snap = await getDoc(ref).catch(() => null);
+    if (!snap || !snap.exists()) {
+      await this.initDay(groupId, date);
+    }
+    const docSnap = await getDoc(ref);
+    const data = docSnap.data() as ScheduleDay;
+    const attendance = data?.attendance ?? {};
+    const studentRec = attendance[studentId] ?? {};
+    const updatedStudentRec = { ...studentRec };
+
+    if (present) {
+      const entry: AttendanceEntry = {
+        present: true,
+        modifiedBy: this.auth.user()?.email ?? 'unknown',
+        modifiedAt: new Date().toISOString(),
+      };
+      timeSlots.forEach((ts) => (updatedStudentRec[ts] = entry));
+    } else {
+      timeSlots.forEach((ts) => delete updatedStudentRec[ts]);
+    }
+
+    const updatedAttendance = { ...attendance, [studentId]: updatedStudentRec };
+
+    const hasAny = Object.values(updatedAttendance).some((studentRec) =>
+      studentRec && Object.values(studentRec as AttendanceRecord).some((e) => !!e),
+    );
+
+    await setDoc(
+      ref,
+      {
+        studentGroupId: groupId,
+        date,
+        accounted: hasAny,
+        transferred: data?.transferred ?? false,
+        disabledTimeSlots: data?.disabledTimeSlots ?? [],
         attendance: updatedAttendance,
       },
       { merge: true },

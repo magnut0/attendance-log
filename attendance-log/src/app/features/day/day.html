@@ -14,8 +14,17 @@
     <thead>
       <tr>
         <th></th>
+        <th class="master-head"></th>
         @for (time of times; track time) {
-          <th>{{ time }}</th>
+          <th class="time-head" [class.disabled-col]="isTimeSlotDisabled(time)">
+            <span class="time-label">{{ time }}</span>
+            <mat-checkbox
+              [checked]="!isTimeSlotDisabled(time)"
+              [disabled]="!isAuthenticated()"
+              (change)="toggleTimeSlot(time)"
+              [matTooltip]="isTimeSlotDisabled(time) ? 'Снова включить время занятий' : 'Занятий в это время не было'"
+            ></mat-checkbox>
+          </th>
         }
       </tr>
     </thead>
@@ -23,13 +32,22 @@
       @for (student of sortedStudents(); track student.id) {
         <tr>
           <td class="name-cell">{{ student.lastName }} {{ student.firstName }} {{ student.patronymic }}</td>
+          <td class="master-cell">
+            <mat-checkbox
+              [checked]="rowChecked(student.id)"
+              [indeterminate]="rowIndeterminate(student.id)"
+              [disabled]="!isAuthenticated() || !enabledTimes().length"
+              (change)="toggleRow(student.id)"
+              [matTooltip]="'Отметить / снять все занятия для студента'"
+            ></mat-checkbox>
+          </td>
           @for (time of times; track time) {
-            <td class="check-cell">
+            <td class="check-cell" [class.disabled-col]="isTimeSlotDisabled(time)">
               <mat-checkbox
                 [checked]="isPresent(student.id, time)"
-                [disabled]="!isAuthenticated()"
+                [disabled]="!isAuthenticated() || isTimeSlotDisabled(time)"
                 (change)="toggle(student.id, time)"
-                [matTooltip]="tooltip(student.id, time)"
+                [matTooltip]="isTimeSlotDisabled(time) ? '' : tooltip(student.id, time)"
               ></mat-checkbox>
             </td>
           }

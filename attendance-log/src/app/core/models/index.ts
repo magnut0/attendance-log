@@ -28,6 +28,7 @@ export interface ScheduleDay {
   date: string; // YYYY-MM-DD
   accounted: boolean;
   transferred: boolean;
+  disabledTimeSlots?: string[]; // время, когда занятий не было
   attendance: {
     [studentId: string]: AttendanceRecord;
   };
