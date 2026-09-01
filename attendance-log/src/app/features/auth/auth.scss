@@ -1,0 +1,27 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.auth-card {
+  width: 380px;
+  max-width: 90vw;
+  padding: 16px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.actions {
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.error {
+  color: var(--mat-sys-error, #f44336);
+  margin-top: 8px;
+}

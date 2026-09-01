@@ -1,0 +1,40 @@
+<div class="day-page">
+  <div class="day-header">
+    <button mat-icon-button (click)="router.navigate(['/'])">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Посещаемость — {{ group()?.name || '' }} — {{ date }}</h1>
+  </div>
+
+  @if (!day() && !students().length) {
+    <div class="hint">Записей пока нет.</div>
+  }
+
+  <table class="att-table mat-elevation-z4">
+    <thead>
+      <tr>
+        <th></th>
+        @for (time of times; track time) {
+          <th>{{ time }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (student of sortedStudents(); track student.id) {
+        <tr>
+          <td class="name-cell">{{ student.lastName }} {{ student.firstName }} {{ student.patronymic }}</td>
+          @for (time of times; track time) {
+            <td class="check-cell">
+              <mat-checkbox
+                [checked]="isPresent(student.id, time)"
+                [disabled]="!isAuthenticated()"
+                (change)="toggle(student.id, time)"
+                [matTooltip]="tooltip(student.id, time)"
+              ></mat-checkbox>
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

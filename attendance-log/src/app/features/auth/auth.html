@@ -1,0 +1,30 @@
+<div class="auth-wrap">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>Посещаемость — вход</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Пароль</mat-label>
+        <input
+          matInput
+          type="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          (keydown.enter)="submit()"
+        />
+      </mat-form-field>
+      @if (error()) {
+        <div class="error">{{ error() }}</div>
+      }
+    </mat-card-content>
+    <mat-card-actions class="actions">
+      <button mat-raised-button color="primary" [disabled]="loading()" (click)="submit()">Войти</button>
+      <button mat-button [disabled]="loading()" (click)="register()">Зарегистрироваться</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

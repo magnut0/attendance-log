@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Allow read-only for everyone, write for authenticated users only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /students/{studentId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /studentGroups/{groupId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /scheduleDays/{dayId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /monthSettings/{settingsId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

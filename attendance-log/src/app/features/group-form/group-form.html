@@ -1,0 +1,61 @@
+<mat-card class="form-card">
+  <mat-card-header>
+    <mat-card-title>
+      {{ editingId() ? 'Редактирование группы' : 'Новая группа' }}
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Название группы *</mat-label>
+      <input matInput [ngModel]="groupName()" (ngModelChange)="groupName.set($event)" />
+    </mat-form-field>
+
+    <div class="students-section">
+      <h2>Студенты</h2>
+      @for (student of students(); track student.localId; let i = $index) {
+        <div class="student-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Фамилия *</mat-label>
+            <input
+              matInput
+              [ngModel]="student.lastName"
+              (ngModelChange)="updateStudent(i, 'lastName', $event)"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Имя</mat-label>
+            <input
+              matInput
+              [ngModel]="student.firstName"
+              (ngModelChange)="updateStudent(i, 'firstName', $event)"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Отчество</mat-label>
+            <input
+              matInput
+              [ngModel]="student.patronymic"
+              (ngModelChange)="updateStudent(i, 'patronymic', $event)"
+            />
+          </mat-form-field>
+          <button mat-icon-button color="warn" (click)="removeStudent(i)" matTooltip="Удалить студента">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+
+      <button mat-stroked-button color="primary" (click)="addStudent()">
+        <mat-icon>person_add</mat-icon>
+        Добавить студента
+      </button>
+    </div>
+
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+  </mat-card-content>
+  <mat-card-actions class="actions">
+    <button mat-raised-button color="primary" [disabled]="saving()" (click)="save()">Сохранить</button>
+    <button mat-button (click)="cancel()">Отмена</button>
+  </mat-card-actions>
+</mat-card>

@@ -1,0 +1,110 @@
+<mat-toolbar color="primary">
+  <span class="app-title">Посещаемость</span>
+  <span class="toolbar-spacer"></span>
+  <mat-form-field appearance="outline" class="group-select">
+    <mat-select
+      placeholder="Выберите группу"
+      [value]="selectedGroupId()"
+      (selectionChange)="selectedGroupId.set($event.value)"
+    >
+      <mat-option *ngFor="let g of groups()" [value]="g.id">{{ g.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <span class="toolbar-spacer"></span>
+  <button mat-icon-button (click)="switchTheme()" matTooltip="Переключить тему">
+    <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
+  @if (isAuthenticated()) {
+    <button mat-raised-button (click)="addGroup()">
+      <mat-icon>add</mat-icon>
+      Добавить группу
+    </button>
+    <button mat-button (click)="logout()">Выйти</button>
+  } @else {
+    <button mat-raised-button (click)="goLogin()">Войти</button>
+  }
+</mat-toolbar>
+
+<div class="home-container">
+  @if (selectedGroupId()) {
+    <div class="group-name">{{ selectedGroupName() }}</div>
+  }
+
+  <div class="toolbar">
+    <button
+      mat-raised-button
+      [color]="activeMode() === 'accounted' ? 'primary' : 'basic'"
+      [class.dim]="activeMode() !== 'accounted'"
+      (click)="toggleMode('accounted')"
+    >
+      Пометить учтёнными
+    </button>
+    <button
+      mat-raised-button
+      [color]="activeMode() === 'transferred' ? 'primary' : 'basic'"
+      [class.dim]="activeMode() !== 'transferred'"
+      (click)="toggleMode('transferred')"
+    >
+      Пометить перенесёнными в бумажный журнал
+    </button>
+    @if (activeMode()) {
+      <button mat-stroked-button color="accent" (click)="markAll()">Отметить все</button>
+    }
+  </div>
+
+  <div class="controls">
+    <mat-checkbox
+      [checked]="saturdayIsStudyDay()"
+      (change)="onSaturdayChange($event.checked)"
+      color="primary"
+    >
+      Суббота — учебный день
+    </mat-checkbox>
+  </div>
+
+  <div class="month-nav">
+    <button mat-icon-button (click)="previousMonth()" matTooltip="Предыдущий месяц">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <span class="month-label">{{ monthLabel() }}</span>
+    <button mat-icon-button (click)="nextMonth()" matTooltip="Следующий месяц">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="calendar">
+    <div class="weekdays">
+      <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+    </div>
+    @for (week of weeks(); track $index) {
+      <div class="week">
+        @for (day of week; track day.date) {
+          <div
+            class="day"
+            [class.disabled]="!day.enabled"
+            [class.sunday]="day.isSunday"
+            [class.inactive-saturday]="day.isSaturday && !saturdayIsStudyDay()"
+            [class.red]="day.enabled && day.isPast && !day.accounted"
+            [class.green]="day.enabled && day.isPast && day.accounted"
+            (click)="onDayClick(day)"
+            [matTooltip]="day.date"
+          >
+            <span class="day-number">{{ day.number }}</span>
+            @if (day.transferred) {
+              <mat-icon class="paper-icon">description</mat-icon>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (!groups().length) {
+    <div class="empty-state">
+      Пока нет ни одной группы.
+      @if (isAuthenticated()) {
+        Добавьте первую.
+      }
+    </div>
+  }
+</div>
