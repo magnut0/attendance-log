@@ -48,7 +48,9 @@
       Пометить перенесёнными в бумажный журнал
     </button>
     @if (activeMode()) {
-      <button mat-stroked-button color="accent" (click)="markAll()">Отметить все</button>
+      <button mat-stroked-button color="accent" (click)="markAll()">
+        {{ allMarked() ? 'Снять отметки' : 'Отметить все' }}
+      </button>
     }
   </div>
 
@@ -86,7 +88,8 @@
               [class.sunday]="day.isSunday"
               [class.inactive-saturday]="day.isSaturday && !saturdayIsStudyDay()"
               [class.red]="day.enabled && day.isPast && !day.accounted"
-              [class.green]="day.enabled && day.isPast && day.accounted"
+              [class.green]="day.enabled && day.accounted"
+              [class.today]="day.isToday"
               (click)="onDayClick(day)"
               [matTooltip]="day.date"
             >

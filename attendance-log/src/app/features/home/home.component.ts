@@ -90,6 +90,33 @@ export class HomeComponent {
   );
   private readonly monthFlags = toSignal(this.monthDays$, { initialValue: new Map<string, DayFlags>() });
 
+  readonly allMarked = computed(() => {
+    const mode = this.activeMode();
+    if (!mode || !this.selectedGroupId()) {
+      return false;
+    }
+    const year = this.displayedMonth().getFullYear();
+    const month = this.displayedMonth().getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const flags = this.monthFlags();
+    const satStudy = this.saturdayIsStudyDay();
+    let total = 0;
+    let marked = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayOfWeek = new Date(year, month, d).getDay();
+      if (dayOfWeek === 0 || (dayOfWeek === 6 && !satStudy)) {
+        continue;
+      }
+      total++;
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const f = flags.get(dateStr);
+      if (f && ((mode === 'accounted' && f.accounted) || (mode === 'transferred' && f.transferred))) {
+        marked++;
+      }
+    }
+    return total > 0 && marked === total;
+  });
+
   readonly monthLabel = computed(() => {
     const d = this.displayedMonth();
     return d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
@@ -140,7 +167,7 @@ export class HomeComponent {
   markAll(): void {
     const mode = this.activeMode();
     const gid = this.selectedGroupId();
-    if (!mode || !gid) {
+    if (!mode || !gid || !this.isAuthenticated()) {
       return;
     }
     this.schedule.markAll(gid, this.displayedMonth(), mode, this.saturdayIsStudyDay());

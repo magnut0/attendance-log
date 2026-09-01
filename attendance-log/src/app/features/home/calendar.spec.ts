@@ -18,4 +18,13 @@ describe('buildCalendarWeeks', () => {
     expect(weeks[0][saturdayIndex]?.isSaturday).toBe(true);
     expect(weeks[0][saturdayIndex]?.enabled).toBe(false);
   });
+
+  it('marks only the passed date as today', () => {
+    const today = new Date(2026, 8, 15);
+    const days = buildCalendarWeeks(2026, 8, new Map(), true, today).flat();
+    const day = days.find((d) => d?.date === '2026-09-15');
+    expect(day?.isToday).toBe(true);
+    const other = days.find((d) => d?.date === '2026-09-16');
+    expect(other?.isToday).toBe(false);
+  });
 });

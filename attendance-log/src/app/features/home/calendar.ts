@@ -7,6 +7,7 @@ export interface CalendarDay {
   isSunday: boolean;
   isSaturday: boolean;
   isPast: boolean;
+  isToday: boolean;
   accounted: boolean;
   transferred: boolean;
 }
@@ -42,6 +43,7 @@ export function buildCalendarWeeks(
       isSunday,
       isSaturday,
       isPast: date < todayStart,
+      isToday: date.getTime() === todayStart.getTime(),
       accounted: flag?.accounted ?? false,
       transferred: flag?.transferred ?? false,
     });

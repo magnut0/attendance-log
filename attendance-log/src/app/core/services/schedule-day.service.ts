@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { doc, onSnapshot, setDoc, updateDoc, writeBatch, query, collection, where, getDoc, type Firestore } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc, writeBatch, query, collection, where, getDoc, getDocs, type Firestore } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 import { ScheduleDay, AttendanceEntry, AttendanceRecord, DayFlags } from '../models';
 import { db } from './firestore';
@@ -209,16 +209,38 @@ export class ScheduleDayService {
     const year = monthStart.getFullYear();
     const month = monthStart.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const batch = writeBatch(db);
+    const dates: string[] = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dayOfWeek = new Date(year, month, d).getDay();
       if (dayOfWeek === 0 || (dayOfWeek === 6 && !saturdayIsStudyDay)) {
         continue;
       }
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const ref = dayRef(groupId, dateStr);
-      batch.set(ref, { [flagType]: true }, { merge: true });
+      dates.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    }
+    if (!dates.length) {
+      return;
+    }
+
+    const ref = query(
+      collection(db, 'scheduleDays'),
+      where('studentGroupId', '==', groupId),
+      where('date', '>=', `${year}-${String(month + 1).padStart(2, '0')}-01`),
+      where('date', '<=', `${year}-${String(month + 1).padStart(2, '0')}-31`),
+    );
+    const snap = await getDocs(ref);
+    const current = new Map<string, boolean>(
+      snap.docs.map((d) => [d.data()['date'], Boolean(d.data()[flagType])]),
+    );
+    const allMarked = dates.every((dateStr) => current.get(dateStr) === true);
+
+    const batch = writeBatch(db);
+    for (const dateStr of dates) {
+      batch.set(
+        dayRef(groupId, dateStr),
+        { studentGroupId: groupId, date: dateStr, [flagType]: !allMarked },
+        { merge: true },
+      );
     }
 
     await batch.commit();
