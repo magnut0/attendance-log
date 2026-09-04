@@ -16,13 +16,13 @@
         <th></th>
         <th class="master-head"></th>
         @for (time of times; track time) {
-          <th class="time-head" [class.disabled-col]="isTimeSlotDisabled(time)">
+          <th class="time-head" [class.disabled-col]="slotDisabled(time)">
             <span class="time-label">{{ time }}</span>
             <mat-checkbox
-              [checked]="!isTimeSlotDisabled(time)"
+              [checked]="!slotDisabled(time)"
               [disabled]="!isAuthenticated()"
               (change)="toggleTimeSlot(time)"
-              [matTooltip]="isTimeSlotDisabled(time) ? 'Снова включить время занятий' : 'Занятий в это время не было'"
+              [matTooltip]="slotDisabled(time) ? 'Снова включить время занятий' : 'Занятий в это время не было'"
             ></mat-checkbox>
           </th>
         }
@@ -33,26 +33,47 @@
         <tr [class.no-attendance]="isDayAccounted() && hasNoAttendance(student.id)">
           <td class="name-cell">{{ student.lastName }} {{ student.firstName }} {{ student.patronymic }}</td>
           <td class="master-cell">
-            <mat-checkbox
-              [checked]="rowChecked(student.id)"
-              [indeterminate]="rowIndeterminate(student.id)"
+            <button
+              type="button"
+              class="custom-check"
+              [class.checked]="rowChecked(student.id)"
               [disabled]="!isAuthenticated() || !enabledTimes().length"
-              (change)="toggleRow(student.id)"
+              (click)="toggleRow(student.id)"
               [matTooltip]="'Отметить / снять все занятия для студента'"
-            ></mat-checkbox>
+              aria-label="Отметить все занятия для студента"
+            ></button>
           </td>
           @for (time of times; track time) {
-            <td class="check-cell" [class.disabled-col]="isTimeSlotDisabled(time)">
-              <mat-checkbox
-                [checked]="isPresent(student.id, time)"
-                [disabled]="!isAuthenticated() || isTimeSlotDisabled(time)"
-                (change)="toggle(student.id, time)"
-                [matTooltip]="isTimeSlotDisabled(time) ? '' : tooltip(student.id, time)"
-              ></mat-checkbox>
-            </td>
+            @if (slotDisabled(time)) {
+              <td class="check-cell disabled-col"></td>
+            } @else {
+              <td class="check-cell">
+                <mat-checkbox
+                  [checked]="isPresent(student.id, time)"
+                  [disabled]="!isAuthenticated()"
+                  (change)="toggle(student.id, time)"
+                  [matTooltip]="tooltip(student.id, time)"
+                ></mat-checkbox>
+              </td>
+            }
           }
         </tr>
       }
     </tbody>
   </table>
+
+  <div class="save-row">
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!isAuthenticated() || !hasPendingChanges() || isSaving()"
+      (click)="save()"
+    >
+      @if (isSaving()) {
+        <mat-spinner diameter="20" class="save-spinner"></mat-spinner>
+      } @else {
+        Сохранить
+      }
+    </button>
+  </div>
 </div>
