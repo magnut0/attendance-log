@@ -1,0 +1,146 @@
+<div class="profile-page">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Профиль</h1>
+  </div>
+
+  <mat-card class="profile-card">
+    <mat-card-content>
+      <div class="avatar-row">
+        <div class="avatar-large">
+          @if (photoUrl()) {
+            <img [src]="photoUrl()" alt="аватар" class="avatar-img" />
+          } @else {
+            <span>{{ avatarInitial() }}</span>
+          }
+          @if (!uploadingAvatar()) {
+            <div class="avatar-overlay">
+              <button
+                type="button"
+                class="overlay-btn"
+                (click)="fileInput.click()"
+                [disabled]="uploadingAvatar()"
+                matTooltip="Обновить аватар"
+              >
+                <mat-icon>camera_alt</mat-icon>
+              </button>
+              @if (photoUrl()) {
+                <button
+                  type="button"
+                  class="overlay-btn"
+                  (click)="removeAvatar()"
+                  matTooltip="Удалить аватар"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+        @if (avatarError()) {
+          <div class="avatar-error">{{ avatarError() }}</div>
+        }
+      </div>
+
+      <div class="avatar-actions">
+        <button mat-stroked-button (click)="fileInput.click()" [disabled]="uploadingAvatar()">
+          @if (uploadingAvatar()) {
+            <mat-spinner diameter="16"></mat-spinner>
+            Загрузка…
+          } @else {
+            <mat-icon>upload</mat-icon>
+            Обновить аватар
+          }
+        </button>
+        @if (photoUrl()) {
+          <button mat-stroked-button (click)="removeAvatar()" [disabled]="uploadingAvatar()">
+            <mat-icon>delete</mat-icon>
+            Удалить аватар
+          </button>
+        }
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="onAvatarSelected($event)"
+        />
+      </div>
+
+      <div class="info-section">
+        <h2>Имя</h2>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>badge</mat-icon>
+            @if (editingName()) {
+              <mat-form-field appearance="outline" class="name-input">
+                <input matInput [ngModel]="nameInput()" (ngModelChange)="nameInput.set($event)" />
+              </mat-form-field>
+            } @else {
+              <span matListItemTitle>{{ displayName() }}</span>
+            }
+          </mat-list-item>
+        </mat-list>
+        <div class="section-actions">
+          @if (editingName()) {
+            <button mat-button color="primary" (click)="saveName()" [disabled]="!nameInput().trim()">
+              <mat-icon>check</mat-icon>
+              Сохранить
+            </button>
+            <button mat-button (click)="cancelEditName()">Отмена</button>
+          } @else {
+            <button mat-button (click)="startEditName()">
+              <mat-icon>edit</mat-icon>
+              Изменить имя
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Почта</h2>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>mail_outline</mat-icon>
+            <span matListItemTitle>{{ email() }}</span>
+          </mat-list-item>
+        </mat-list>
+      </div>
+
+      <div class="info-section">
+        <h2>Роль</h2>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>{{ isSuperUser() ? 'admin_panel_settings' : 'account_circle' }}</mat-icon>
+            <span matListItemTitle>{{ isSuperUser() ? 'Superuser' : 'Пользователь' }}</span>
+          </mat-list-item>
+        </mat-list>
+      </div>
+
+      <div class="info-section">
+        <h2>Группы</h2>
+        @if (myGroups().length) {
+          <mat-list>
+            @for (g of myGroups(); track g.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>groups</mat-icon>
+                <span matListItemTitle>{{ g.name }}</span>
+              </mat-list-item>
+            }
+          </mat-list>
+        } @else {
+          <div class="no-groups">Нет назначенных групп</div>
+        }
+      </div>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="openChangePassword()">
+          <mat-icon>lock</mat-icon>
+          Изменить пароль
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

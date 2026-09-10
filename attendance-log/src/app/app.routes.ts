@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { superUserGuard } from './core/guards/super-user.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -24,6 +25,11 @@ export const routes: Routes = [
     path: 'group/:id/edit',
     loadComponent: () => import('./features/group-form/group-form.component').then((m) => m.GroupFormComponent),
     canActivate: [superUserGuard],
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile.component').then((m) => m.ProfileComponent),
+    canActivate: [authGuard],
   },
   {
     path: 'day/:groupId/:date',

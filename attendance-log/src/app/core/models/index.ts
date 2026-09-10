@@ -46,6 +46,8 @@ export interface UserProfile {
   email: string;
   isSuperUser: boolean;
   groupIds: string[];
+  displayName?: string;
+  photoUrl?: string;
 }
 
 export const TIME_SLOTS = ['8:30', '10:15', '12:10', '14:00', '15:45'] as const;

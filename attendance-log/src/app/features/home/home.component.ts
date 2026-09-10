@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
 import { combineLatest, map, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -35,6 +36,7 @@ const SELECTED_GROUP_KEY = 'selectedGroupId';
     MatCheckboxModule,
     MatTooltipModule,
     MatBadgeModule,
+    MatMenuModule,
   ],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
@@ -98,6 +100,22 @@ export class HomeComponent {
     const p = this.profile();
     return p ?? null;
   });
+
+  readonly userDisplayName = computed(() => {
+    const p = this.profile();
+    return p?.displayName || p?.email || '';
+  });
+
+  readonly userPhotoUrl = computed(() => this.profile()?.photoUrl ?? '');
+
+  readonly avatarInitial = computed(() => {
+    const name = this.userDisplayName();
+    return name ? name.charAt(0).toUpperCase() : '?';
+  });
+
+  goToProfile(): void {
+    this.router.navigate(['/profile']);
+  }
 
   constructor() {
     effect(() => {

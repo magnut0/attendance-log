@@ -72,4 +72,8 @@ export class UserProfileService {
   unassignGroup(uid: string, groupId: string): Promise<void> {
     return updateDoc(userRef(uid), { groupIds: arrayRemove(groupId) });
   }
+
+  update(uid: string, data: Partial<Omit<UserProfile, 'uid'>>): Promise<void> {
+    return updateDoc(userRef(uid), data as Record<string, unknown>);
+  }
 }

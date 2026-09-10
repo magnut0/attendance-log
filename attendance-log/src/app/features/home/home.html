@@ -18,12 +18,7 @@
   </button>
   @if (isAuthenticated()) {
     <div class="user-info">
-      <span class="user-email">{{ userProfile()?.email }}</span>
-      @if (isSuperUser()) {
-        <span class="role-badge super">Super</span>
-      } @else {
-        <span class="role-badge user">User</span>
-      }
+      <span class="user-name">{{ userDisplayName() }}</span>
     </div>
     @if (isSuperUser()) {
       <button mat-raised-button (click)="goToGroups()" class="groups-btn">
@@ -31,7 +26,30 @@
         <span class="groups-label">Группы</span>
       </button>
     }
-    <button mat-button (click)="logout()">Выйти</button>
+    <button
+      mat-icon-button
+      [matMenuTriggerFor]="profileMenu"
+      class="avatar-btn"
+      matTooltip="Профиль"
+    >
+      <span class="avatar-circle">
+        @if (userPhotoUrl()) {
+          <img [src]="userPhotoUrl()" alt="аватар" class="avatar-img" />
+        } @else {
+          <span class="avatar-initial">{{ avatarInitial() }}</span>
+        }
+      </span>
+    </button>
+    <mat-menu #profileMenu="matMenu">
+      <button mat-menu-item (click)="goToProfile()">
+        <mat-icon>person</mat-icon>
+        <span>Профиль</span>
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Выйти</span>
+      </button>
+    </mat-menu>
   } @else {
     <button mat-raised-button (click)="goLogin()">Войти</button>
   }
