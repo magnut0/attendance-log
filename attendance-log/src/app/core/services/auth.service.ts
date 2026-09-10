@@ -17,7 +17,7 @@ export class AuthService {
   readonly user = toSignal(this.authState$, { initialValue: null });
   readonly isAuthenticated = computed(() => !!this.user());
 
-  private profile$ = this.authState$.pipe(
+  readonly profile$ = this.authState$.pipe(
     switchMap((user) => (user ? this.profileService.get$(user.uid) : of(undefined))),
   );
 
