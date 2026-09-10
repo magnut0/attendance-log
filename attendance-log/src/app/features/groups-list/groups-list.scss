@@ -46,3 +46,31 @@
   margin-top: 24px;
   color: var(--mat-sys-on-surface-variant, #888);
 }
+
+@media (max-width: 600px) {
+  :host {
+    padding: 0;
+  }
+
+  .groups-page {
+    padding: 16px 8px;
+  }
+
+  .page-header {
+    h1 {
+      font-size: 18px;
+    }
+
+    button[mat-raised-button] {
+      font-size: 13px;
+
+      .mat-icon {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .group-item {
+    margin-bottom: 6px;
+  }
+}

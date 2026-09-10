@@ -89,3 +89,29 @@
   color: var(--mat-sys-error, #f44336);
   margin-top: 12px;
 }
+
+@media (max-width: 600px) {
+  :host {
+    padding: 12px;
+  }
+
+  .page-header {
+    h1 {
+      font-size: 18px;
+    }
+  }
+
+  .assign-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    button {
+      width: 100%;
+    }
+  }
+}

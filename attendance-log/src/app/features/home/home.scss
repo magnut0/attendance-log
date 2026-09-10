@@ -40,8 +40,8 @@
     }
 
     &.user {
-      background: rgba(255, 255, 255, 0.25);
-      color: #fff;
+      background: color-mix(in srgb, var(--mat-sys-on-primary-container) 15%, transparent);
+      color: var(--mat-sys-on-primary-container);
     }
   }
 }
@@ -197,4 +197,84 @@
   text-align: center;
   margin-top: 24px;
   color: var(--mat-sys-on-surface-variant, #888);
+}
+
+@media (max-width: 600px) {
+  .home-container {
+    padding: 0 8px;
+    margin: 16px auto;
+  }
+
+  .user-info {
+    margin-right: 0;
+
+    .user-email {
+      display: none;
+    }
+  }
+
+  .app-title {
+    display: none;
+  }
+
+  .group-select {
+    width: 170px;
+    font-size: 13px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 4px;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .controls {
+    mat-checkbox {
+      font-size: 13px;
+    }
+  }
+
+  .month-label {
+    font-size: 16px;
+    min-width: 130px;
+  }
+
+  .day {
+    min-height: 44px;
+    padding: 3px;
+    font-size: 12px;
+  }
+
+  .day-placeholder {
+    min-height: 44px;
+  }
+
+  .paper-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  mat-toolbar {
+    padding: 0 8px;
+    gap: 4px;
+
+    button[mat-button] {
+      font-size: 12px;
+      padding: 0 8px;
+    }
+
+    .groups-btn {
+      min-width: 40px;
+      padding: 0 10px;
+
+      .groups-label {
+        display: none;
+      }
+    }
+  }
 }

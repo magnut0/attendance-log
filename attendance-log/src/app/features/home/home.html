@@ -26,9 +26,9 @@
       }
     </div>
     @if (isSuperUser()) {
-      <button mat-raised-button (click)="goToGroups()">
+      <button mat-raised-button (click)="goToGroups()" class="groups-btn">
         <mat-icon>groups</mat-icon>
-        Группы
+        <span class="groups-label">Группы</span>
       </button>
     }
     <button mat-button (click)="logout()">Выйти</button>

@@ -150,3 +150,41 @@
     display: inline-block;
   }
 }
+
+@media (max-width: 600px) {
+  :host {
+    padding: 12px;
+  }
+
+  .day-header {
+    h1 {
+      font-size: 17px;
+    }
+  }
+
+  .att-table {
+    th,
+    td {
+      padding: 4px;
+      font-size: 12px;
+    }
+
+    td.name-cell {
+      white-space: normal;
+      min-width: 90px;
+      max-width: 110px;
+    }
+
+    td.check-cell {
+      min-width: 28px;
+    }
+  }
+
+  .save-row {
+    margin-top: 16px;
+
+    button {
+      width: 100%;
+    }
+  }
+}
