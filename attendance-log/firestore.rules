@@ -3,6 +3,10 @@ rules_version = '2';
 // Allow read-only for everyone, write for authenticated users only.
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     match /students/{studentId} {
       allow read: if true;
       allow write: if request.auth != null;
@@ -24,8 +28,25 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      function isSuperUser() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperUser == true;
+      }
+
+      // Своя запись: нельзя менять роль, email и группы; temp-пароль можно
+      // лишь очищать либо сохранять текущее значение.
+      function canUpdateSelf() {
+        let changed = request.resource.data.diff(resource.data);
+        let tempOk = !('tempPassword' in request.resource.data)
+          || request.resource.data.tempPassword == ''
+          || request.resource.data.tempPassword == resource.data.tempPassword;
+        return !changed.affectedKeys().hasAny(['isSuperUser', 'email', 'groupIds']) && tempOk;
+      }
+
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperUser());
+      allow create: if isSignedIn()
+        && ((request.auth.uid == userId && request.resource.data.isSuperUser == false) || isSuperUser());
+      allow update: if isSignedIn() && (canUpdateSelf() || isSuperUser());
+      allow delete: if isSignedIn() && isSuperUser();
     }
   }
 }

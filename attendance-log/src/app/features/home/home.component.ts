@@ -10,6 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { combineLatest, map, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,6 +18,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { StudentGroupService } from '../../core/services/student-group.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ScheduleDayService } from '../../core/services/schedule-day.service';
+import { ForcePasswordComponent } from '../force-password/force-password.component';
 import { DayFlags } from '../../core/models';
 import { buildCalendarWeeks, CalendarDay } from './calendar';
 
@@ -49,6 +51,7 @@ export class HomeComponent {
   private settings = inject(SettingsService);
   private schedule = inject(ScheduleDayService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   readonly isAuthenticated = this.auth.isAuthenticated;
   readonly isSuperUser = this.auth.isSuperUser;
@@ -117,6 +120,8 @@ export class HomeComponent {
     this.router.navigate(['/profile']);
   }
 
+  private forcePasswordOpened = false;
+
   constructor() {
     effect(() => {
       const id = this.selectedGroupId();
@@ -137,6 +142,16 @@ export class HomeComponent {
       const auto = this.needsAutoSelect();
       if (auto) {
         this.selectedGroupId.set('');
+      }
+    });
+    effect(() => {
+      const p = this.profile();
+      if (p?.mustChangePassword && !this.forcePasswordOpened) {
+        this.forcePasswordOpened = true;
+        const ref = this.dialog.open(ForcePasswordComponent, { disableClose: true });
+        ref.afterClosed().subscribe(() => {
+          this.forcePasswordOpened = false;
+        });
       }
     });
   }
@@ -203,6 +218,10 @@ export class HomeComponent {
 
   goToGroups(): void {
     this.router.navigate(['/groups']);
+  }
+
+  goToUsers(): void {
+    this.router.navigate(['/users']);
   }
 
   goLogin(): void {

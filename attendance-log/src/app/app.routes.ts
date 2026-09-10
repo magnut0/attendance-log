@@ -32,6 +32,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'users',
+    loadComponent: () => import('./features/users/users-list/users-list.component').then((m) => m.UsersListComponent),
+    canActivate: [superUserGuard],
+  },
+  {
+    path: 'users/:id',
+    loadComponent: () => import('./features/users/users-details/users-details.component').then((m) => m.UsersDetailsComponent),
+    canActivate: [superUserGuard],
+  },
+  {
     path: 'day/:groupId/:date',
     loadComponent: () => import('./features/day/day.component').then((m) => m.DayComponent),
   },

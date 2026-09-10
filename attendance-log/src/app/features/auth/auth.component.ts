@@ -5,7 +5,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -17,7 +16,6 @@ import { AuthService } from '../../core/services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatTabsModule,
   ],
   templateUrl: './auth.html',
   styleUrls: ['./auth.scss'],
@@ -30,10 +28,12 @@ export class AuthComponent {
   email = signal('');
   password = signal('');
   error = signal('');
+  info = signal('');
   loading = signal(false);
 
   async submit(): Promise<void> {
     this.error.set('');
+    this.info.set('');
     this.loading.set(true);
     try {
       await this.auth.login(this.email(), this.password());
@@ -45,12 +45,17 @@ export class AuthComponent {
     }
   }
 
-  async register(): Promise<void> {
+  async resetPassword(): Promise<void> {
     this.error.set('');
+    const email = this.email().trim();
+    if (!email) {
+      this.error.set('Введите email, чтобы сбросить пароль');
+      return;
+    }
     this.loading.set(true);
     try {
-      await this.auth.register(this.email(), this.password());
-      this.goBack();
+      await this.auth.resetPasswordByEmail(email);
+      this.info.set(`Письмо для сброса пароля отправлено на ${email}`);
     } catch (e) {
       this.error.set(this.getErrorMessage(e));
     } finally {
@@ -70,8 +75,6 @@ export class AuthComponent {
       case 'auth/user-not-found':
       case 'auth/wrong-password':
         return 'Неверный email или пароль';
-      case 'auth/email-already-in-use':
-        return 'Пользователь с таким email уже существует';
       case 'auth/invalid-email':
         return 'Некорректный email';
       case 'auth/weak-password':

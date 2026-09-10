@@ -21,10 +21,15 @@
       @if (error()) {
         <div class="error">{{ error() }}</div>
       }
+      @if (info()) {
+        <div class="info">{{ info() }}</div>
+      }
     </mat-card-content>
     <mat-card-actions class="actions">
       <button mat-raised-button color="primary" [disabled]="loading()" (click)="submit()">Войти</button>
-      <button mat-button [disabled]="loading()" (click)="register()">Зарегистрироваться</button>
+      <button mat-button class="forgot-link" [disabled]="loading()" (click)="resetPassword()">
+        Забыли пароль?
+      </button>
     </mat-card-actions>
   </mat-card>
 </div>

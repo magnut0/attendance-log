@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StudentGroupService } from '../../core/services/student-group.service';
-import { ConfirmDialogComponent } from './confirm-dialog.component';
+import { ConfirmDialogComponent } from '../../core/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-groups-list',
@@ -42,7 +42,12 @@ export class GroupsListComponent {
 
   async deleteGroup(id: string, event: MouseEvent): Promise<void> {
     event.stopPropagation();
-    const dialogRef = this.dialog.open(ConfirmDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        message: 'Вы уверены, что хотите удалить группу?',
+        confirmLabel: 'Удалить',
+      },
+    });
     const confirmed = await dialogRef.afterClosed().toPromise();
     if (confirmed) {
       await this.groupsService.remove(id);

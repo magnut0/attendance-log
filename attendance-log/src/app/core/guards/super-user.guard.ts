@@ -7,6 +7,10 @@ export const superUserGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
+  if (auth.operationInProgress()) {
+    return true;
+  }
+
   if (auth.profile() !== undefined) {
     return auth.isSuperUser() ? true : router.createUrlTree(['/']);
   }
@@ -14,6 +18,7 @@ export const superUserGuard: CanActivateFn = (route, state) => {
   return new Observable<boolean | UrlTree>((subscriber) => {
     const sub = auth.profile$
       .pipe(
+        filter(() => !auth.operationInProgress()),
         filter((p) => p !== undefined),
         take(1),
       )

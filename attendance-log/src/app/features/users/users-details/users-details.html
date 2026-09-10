@@ -1,0 +1,99 @@
+<div class="users-details-page">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ displayName() }}</h1>
+  </div>
+
+  <mat-card class="details-card">
+    <mat-card-content>
+      <div class="avatar-row">
+        <div class="avatar-large">
+          @if (photoUrl()) {
+            <img [src]="photoUrl()" alt="аватар" class="avatar-img" />
+          } @else {
+            <span>{{ avatarInitial() }}</span>
+          }
+        </div>
+        <div class="user-email">{{ email() }}</div>
+      </div>
+
+      <div class="info-section">
+        <h2>Роль</h2>
+        <mat-list>
+          <mat-list-item>
+            <mat-icon matListItemIcon>{{
+              isSuperUser() ? 'admin_panel_settings' : 'account_circle'
+            }}</mat-icon>
+            <span matListItemTitle>{{ isSuperUser() ? 'Superuser' : 'Пользователь' }}</span>
+          </mat-list-item>
+        </mat-list>
+        <div class="section-actions">
+          <button mat-button color="primary" (click)="toggleRole()">
+            <mat-icon>swap_horiz</mat-icon>
+            {{ isSuperUser() ? 'Сделать пользователем' : 'Сделать суперпользователем' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h2>Группы</h2>
+        @if (myGroups().length) {
+          <mat-list>
+            @for (g of myGroups(); track g.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>groups</mat-icon>
+                <span matListItemTitle>{{ g.name }}</span>
+                <button mat-icon-button matListItemMeta (click)="unassignGroup(g.id)">
+                  <mat-icon>link_off</mat-icon>
+                </button>
+              </mat-list-item>
+            }
+          </mat-list>
+        } @else {
+          <div class="empty-note">Нет назначенных групп</div>
+        }
+        @if (availableGroups().length) {
+          <div class="assign-row">
+            <mat-form-field appearance="outline" class="assign-select">
+              <mat-select
+                placeholder="Назначить группу"
+                [value]="selectedGroupId()"
+                (selectionChange)="selectedGroupId.set($event.value)"
+              >
+                @for (g of availableGroups(); track g.id) {
+                  <mat-option [value]="g.id">{{ g.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!selectedGroupId()"
+              (click)="assignGroup()"
+            >
+              <mat-icon>add</mat-icon>
+              Назначить
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (tempPassword()) {
+        <div class="info-section">
+          <h2>Временный пароль</h2>
+          <div class="temp-password-row">
+            <code class="temp-password">{{ tempPassword() }}</code>
+            <button mat-icon-button (click)="copyTempPassword()">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <div class="empty-note">
+            Действует до первого входа пользователя и обязательной смены пароля.
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,43 @@
+<div class="users-page">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Пользователи</h1>
+    <span class="spacer"></span>
+    <button mat-raised-button color="primary" (click)="addUser()" [disabled]="creating()">
+      <mat-icon>person_add</mat-icon>
+      <span class="add-label">Добавить</span>
+    </button>
+  </div>
+
+  @if (creating()) {
+    <div class="creating-hint">Создание пользователя…</div>
+  }
+
+  <mat-card class="users-card">
+    <mat-list>
+      @for (u of users(); track u.uid) {
+        <mat-list-item class="user-item" (click)="openUser(u.uid)">
+          <div matListItemIcon class="avatar-circle">
+            @if (u.photoUrl) {
+              <img [src]="u.photoUrl" alt="аватар" />
+            } @else {
+              <span>{{ initialOf(u) }}</span>
+            }
+          </div>
+          <span matListItemTitle class="user-title">
+            {{ displayNameOf(u) }}
+            <span class="role-badge" [class.super]="u.isSuperUser">
+              {{ u.isSuperUser ? 'Superuser' : 'Пользователь' }}
+            </span>
+          </span>
+          <span matListItemLine class="user-email">{{ u.email }}</span>
+          <mat-icon matListItemMeta>chevron_right</mat-icon>
+        </mat-list-item>
+      } @empty {
+        <div class="empty">Пользователей пока нет</div>
+      }
+    </mat-list>
+  </mat-card>
+</div>

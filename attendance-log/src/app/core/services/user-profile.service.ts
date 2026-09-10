@@ -32,6 +32,10 @@ export class UserProfileService {
       email: profile.email,
       isSuperUser: profile.isSuperUser,
       groupIds: profile.groupIds,
+      ...(profile.displayName ? { displayName: profile.displayName } : {}),
+      ...(profile.photoUrl ? { photoUrl: profile.photoUrl } : {}),
+      ...(profile.mustChangePassword !== undefined ? { mustChangePassword: profile.mustChangePassword } : {}),
+      ...(profile.tempPassword ? { tempPassword: profile.tempPassword } : {}),
     });
   }
 
@@ -59,7 +63,10 @@ export class UserProfileService {
           const profiles = snap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserProfile));
           subscriber.next(profiles);
         },
-        (err) => subscriber.error(err),
+        () => {
+          // Игнорируем временные ошибки доступа (например, при переключении
+          // сессии во время создания пользователя); подписка остаётся активной.
+        },
       );
       return unsub;
     });
