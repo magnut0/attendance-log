@@ -231,7 +231,7 @@ export class ScheduleDayService {
     batch.set(ref, {
       studentGroupId: groupId,
       date,
-      accounted: existing?.accounted ?? false,
+      accounted: hasAny,
       transferred: existing?.transferred ?? false,
       disabledTimeSlots,
       attendance: merged,

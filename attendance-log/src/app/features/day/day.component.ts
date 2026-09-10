@@ -229,8 +229,12 @@ export class DayComponent {
       });
       mergedAttendance[studentId] = rec;
     });
+    const hasAny = Object.values(mergedAttendance).some(
+      (r) => r && Object.values(r).some((e) => !!e),
+    );
     this.day.set({
       ...current,
+      accounted: hasAny,
       disabledTimeSlots: finalDisabled,
       attendance: mergedAttendance,
     });
