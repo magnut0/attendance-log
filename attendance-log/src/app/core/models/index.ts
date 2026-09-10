@@ -41,6 +41,13 @@ export interface MonthSettings {
   saturdayIsStudyDay: boolean;
 }
 
+export interface UserProfile {
+  uid: string;
+  email: string;
+  isSuperUser: boolean;
+  groupIds: string[];
+}
+
 export const TIME_SLOTS = ['8:30', '10:15', '12:10', '14:00', '15:45'] as const;
 
 export interface DayFlags {

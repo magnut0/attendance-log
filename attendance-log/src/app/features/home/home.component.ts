@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { FormsModule } from '@angular/forms';
 import { combineLatest, map, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -33,6 +34,7 @@ const SELECTED_GROUP_KEY = 'selectedGroupId';
     MatSelectModule,
     MatCheckboxModule,
     MatTooltipModule,
+    MatBadgeModule,
   ],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
@@ -47,12 +49,55 @@ export class HomeComponent {
   private router = inject(Router);
 
   readonly isAuthenticated = this.auth.isAuthenticated;
-  readonly groups = toSignal(this.groupsService.list$(), { initialValue: [] });
+  readonly isSuperUser = this.auth.isSuperUser;
+  readonly profile = this.auth.profile;
   readonly isDark = this.theme.isDark;
+
+  readonly allGroups = toSignal(this.groupsService.list$(), { initialValue: [] });
+  readonly groups = computed(() => {
+    if (this.isSuperUser()) {
+      return this.allGroups();
+    }
+    const ids = this.auth.userGroupIds();
+    return this.allGroups().filter((g) => ids.includes(g.id));
+  });
+
+  readonly showGroupSelector = computed(() => {
+    if (this.isSuperUser()) {
+      return true;
+    }
+    return this.auth.userGroupIds().length > 1;
+  });
+
+  readonly needsAutoSelect = computed(() => {
+    return !this.isSuperUser() && this.auth.userGroupIds().length === 1;
+  });
 
   selectedGroupId = signal<string>(localStorage.getItem(SELECTED_GROUP_KEY) ?? '');
   displayedMonth = signal<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   activeMode = signal<'accounted' | 'transferred' | null>(null);
+
+  readonly effectiveGroupId = computed(() => {
+    if (this.needsAutoSelect()) {
+      const uid = this.auth.userGroupIds()[0];
+      return uid ?? '';
+    }
+    const id = this.selectedGroupId();
+    if (id && this.groups().some((g) => g.id === id)) {
+      return id;
+    }
+    return '';
+  });
+
+  readonly selectedGroupName = computed(() => {
+    const gid = this.effectiveGroupId();
+    return this.groups().find((g) => g.id === gid)?.name ?? '';
+  });
+
+  readonly userProfile = computed(() => {
+    const p = this.profile();
+    return p ?? null;
+  });
 
   constructor() {
     effect(() => {
@@ -70,20 +115,26 @@ export class HomeComponent {
         this.selectedGroupId.set('');
       }
     });
+    effect(() => {
+      const auto = this.needsAutoSelect();
+      if (auto) {
+        this.selectedGroupId.set('');
+      }
+    });
   }
 
-  private selectedGroup$ = toObservable(this.selectedGroupId);
+  private effectiveGroup$ = toObservable(this.effectiveGroupId);
   private displayedMonth$ = toObservable(this.displayedMonth);
   private currentMonthKey$ = this.displayedMonth$.pipe(map((d) => monthKey(d)));
 
-  private saturdaySetting$ = combineLatest([this.selectedGroup$, this.currentMonthKey$]).pipe(
+  private saturdaySetting$ = combineLatest([this.effectiveGroup$, this.currentMonthKey$]).pipe(
     switchMap(([gid, mk]) =>
       gid ? this.settings.getSaturdayIsStudyDay$(gid, mk) : of(true),
     ),
   );
   readonly saturdayIsStudyDay = toSignal(this.saturdaySetting$, { initialValue: true });
 
-  private monthDays$ = combineLatest([this.selectedGroup$, this.displayedMonth$]).pipe(
+  private monthDays$ = combineLatest([this.effectiveGroup$, this.displayedMonth$]).pipe(
     switchMap(([gid, month]) =>
       gid ? this.schedule.listDaysForGroupAndMonth$(gid, month) : of(new Map<string, DayFlags>()),
     ),
@@ -92,7 +143,7 @@ export class HomeComponent {
 
   readonly allMarked = computed(() => {
     const mode = this.activeMode();
-    if (!mode || !this.selectedGroupId()) {
+    if (!mode || !this.effectiveGroupId()) {
       return false;
     }
     const year = this.displayedMonth().getFullYear();
@@ -122,11 +173,6 @@ export class HomeComponent {
     return d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   });
 
-  readonly selectedGroupName = computed(() => {
-    const gid = this.selectedGroupId();
-    return this.groups().find((g) => g.id === gid)?.name ?? '';
-  });
-
   switchTheme(): void {
     this.theme.toggle();
   }
@@ -134,6 +180,7 @@ export class HomeComponent {
   logout(): void {
     this.auth.logout();
     this.activeMode.set(null);
+    this.selectedGroupId.set('');
   }
 
   addGroup(): void {
@@ -145,7 +192,7 @@ export class HomeComponent {
   }
 
   onSaturdayChange(value: boolean): void {
-    const gid = this.selectedGroupId();
+    const gid = this.effectiveGroupId();
     const mk = monthKey(this.displayedMonth());
     if (gid) {
       this.settings.setSaturdayIsStudyDay(gid, mk, value);
@@ -166,7 +213,7 @@ export class HomeComponent {
 
   markAll(): void {
     const mode = this.activeMode();
-    const gid = this.selectedGroupId();
+    const gid = this.effectiveGroupId();
     if (!mode || !gid || !this.isAuthenticated()) {
       return;
     }
@@ -174,7 +221,7 @@ export class HomeComponent {
   }
 
   onDayClick(day: CalendarDay): void {
-    const gid = this.selectedGroupId();
+    const gid = this.effectiveGroupId();
     if (!gid || !day.enabled) {
       return;
     }

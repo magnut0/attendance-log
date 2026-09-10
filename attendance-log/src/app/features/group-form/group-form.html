@@ -50,6 +50,43 @@
       </button>
     </div>
 
+    @if (editingId()) {
+      <div class="users-section">
+        <h2>Пользователи группы</h2>
+        @if (linkedUsers().length) {
+          <mat-list>
+            @for (user of linkedUsers(); track user.uid) {
+              <mat-list-item>
+                <span matListItemTitle>{{ user.email }}</span>
+                <button mat-icon-button color="warn" matListItemMeta (click)="unassignUser(user.uid)" matTooltip="Отвязать пользователя">
+                  <mat-icon>link_off</mat-icon>
+                </button>
+              </mat-list-item>
+            }
+          </mat-list>
+        } @else {
+          <div class="no-users">Нет привязанных пользователей</div>
+        }
+
+        @if (availableUsers().length) {
+          <div class="assign-row">
+            <mat-form-field appearance="outline" class="assign-select">
+              <mat-label>Привязать пользователя</mat-label>
+              <mat-select [value]="selectedUserId()" (selectionChange)="selectedUserId.set($event.value)">
+                @for (user of availableUsers(); track user.uid) {
+                  <mat-option [value]="user.uid">{{ user.email }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-raised-button color="primary" [disabled]="!selectedUserId()" (click)="assignUser()">
+              <mat-icon>person_add</mat-icon>
+              Привязать
+            </button>
+          </div>
+        }
+      </div>
+    }
+
     @if (error()) {
       <div class="error">{{ error() }}</div>
     }

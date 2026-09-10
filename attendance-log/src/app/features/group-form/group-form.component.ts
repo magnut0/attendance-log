@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,9 +8,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { MatListModule } from '@angular/material/list';
 import { StudentGroupService } from '../../core/services/student-group.service';
 import { StudentService } from '../../core/services/student.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
+import type { UserProfile } from '../../core/models';
+import { Subscription } from 'rxjs';
 
 interface StudentFormItem {
   localId: string;
@@ -30,16 +35,19 @@ interface StudentFormItem {
     MatButtonModule,
     MatIconModule,
     MatCardModule,
+    MatSelectModule,
+    MatListModule,
   ],
   templateUrl: './group-form.html',
   styleUrls: ['./group-form.scss'],
 })
-export class GroupFormComponent implements OnInit {
+export class GroupFormComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private groupsService = inject(StudentGroupService);
   private studentsService = inject(StudentService);
   private settings = inject(SettingsService);
+  private userProfileService = inject(UserProfileService);
 
   editingId = signal<string | null>(null);
   groupName = signal('');
@@ -47,18 +55,46 @@ export class GroupFormComponent implements OnInit {
   error = signal('');
   saving = signal(false);
 
-  async ngOnInit(): Promise<void> {
+  linkedUsers = signal<UserProfile[]>([]);
+  allUsers = signal<UserProfile[]>([]);
+  selectedUserId = signal<string>('');
+
+  private linkedUsersSub?: Subscription;
+  private allUsersSub?: Subscription;
+
+  readonly availableUsers = computed(() => {
+    const linked = new Set(this.linkedUsers().map((u) => u.uid));
+    return this.allUsers().filter((u) => !linked.has(u.uid));
+  });
+
+  ngOnInit(): void {
+    this.allUsersSub = this.userProfileService.getAllUsers$().subscribe((users) => {
+      this.allUsers.set(users);
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editingId.set(id);
-      const group = await this.waitForGroup(id);
-      if (group) {
-        this.groupName.set(group.name);
-        const students = await this.loadStudents(id);
-        this.students.set(students);
-      }
+      this.linkedUsersSub = this.userProfileService.getByGroup$(id).subscribe((users) => {
+        this.linkedUsers.set(users);
+      });
+      this.loadGroup(id);
     } else {
       this.addStudent();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.linkedUsersSub?.unsubscribe();
+    this.allUsersSub?.unsubscribe();
+  }
+
+  private async loadGroup(id: string): Promise<void> {
+    const group = await this.waitForGroup(id);
+    if (group) {
+      this.groupName.set(group.name);
+      const students = await this.loadStudents(id);
+      this.students.set(students);
     }
   }
 
@@ -142,6 +178,24 @@ export class GroupFormComponent implements OnInit {
     }
   }
 
+  async assignUser(): Promise<void> {
+    const uid = this.selectedUserId();
+    const groupId = this.editingId();
+    if (!uid || !groupId) {
+      return;
+    }
+    await this.userProfileService.assignGroup(uid, groupId);
+    this.selectedUserId.set('');
+  }
+
+  async unassignUser(uid: string): Promise<void> {
+    const groupId = this.editingId();
+    if (!groupId) {
+      return;
+    }
+    await this.userProfileService.unassignGroup(uid, groupId);
+  }
+
   private async saveStudents(groupId: string): Promise<void> {
     const existing = this.editingId()
       ? await this.loadStudentsForSave(this.editingId()!)
@@ -167,7 +221,6 @@ export class GroupFormComponent implements OnInit {
       }
     }
 
-    // remove students that were in the group but are now removed from the form
     const remainingIds = new Set(formItems.map((f) => f.localId));
     for (const ex of existing) {
       if (!remainingIds.has(ex.localId)) {
