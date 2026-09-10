@@ -18,8 +18,8 @@
           <mat-icon matListItemIcon>groups</mat-icon>
           <span matListItemTitle>{{ group.name }}</span>
           <span matListItemLine>{{ group.studentIds.length }} студентов</span>
-          <button mat-icon-button matListItemMeta>
-            <mat-icon>chevron_right</mat-icon>
+          <button mat-icon-button matListItemMeta (click)="deleteGroup(group.id, $event)" matTooltip="Удалить группу">
+            <mat-icon color="warn">delete</mat-icon>
           </button>
         </mat-list-item>
       }

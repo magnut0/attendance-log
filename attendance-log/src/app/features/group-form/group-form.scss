@@ -3,6 +3,20 @@
   padding: 24px;
 }
 
+.page-header {
+  max-width: 760px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
 .form-card {
   max-width: 760px;
   margin: 0 auto;

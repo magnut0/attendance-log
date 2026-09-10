@@ -249,6 +249,6 @@ export class GroupFormComponent implements OnInit, OnDestroy {
   }
 
   cancel(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/groups']);
   }
 }
