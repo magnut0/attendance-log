@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'groups',
+    loadComponent: () => import('./features/groups-list/groups-list.component').then((m) => m.GroupsListComponent),
+    canActivate: [superUserGuard],
+  },
+  {
     path: 'group/new',
     loadComponent: () => import('./features/group-form/group-form.component').then((m) => m.GroupFormComponent),
     canActivate: [superUserGuard],

@@ -1,0 +1,32 @@
+<div class="groups-page">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Группы</h1>
+    <span class="spacer"></span>
+    <button mat-raised-button color="primary" (click)="addGroup()">
+      <mat-icon>add</mat-icon>
+      Добавить группу
+    </button>
+  </div>
+
+  @if (groups().length) {
+    <mat-list class="groups-list">
+      @for (group of groups(); track group.id) {
+        <mat-list-item class="group-item" (click)="editGroup(group.id)">
+          <mat-icon matListItemIcon>groups</mat-icon>
+          <span matListItemTitle>{{ group.name }}</span>
+          <span matListItemLine>{{ group.studentIds.length }} студентов</span>
+          <button mat-icon-button matListItemMeta>
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </mat-list-item>
+      }
+    </mat-list>
+  } @else {
+    <div class="empty-state">
+      Пока нет ни одной группы.
+    </div>
+  }
+</div>

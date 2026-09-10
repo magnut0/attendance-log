@@ -183,8 +183,8 @@ export class HomeComponent {
     this.selectedGroupId.set('');
   }
 
-  addGroup(): void {
-    this.router.navigate(['/group/new']);
+  goToGroups(): void {
+    this.router.navigate(['/groups']);
   }
 
   goLogin(): void {
