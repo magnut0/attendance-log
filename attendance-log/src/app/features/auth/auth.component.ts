@@ -31,6 +31,13 @@ export class AuthComponent {
   info = signal('');
   loading = signal(false);
 
+  constructor() {
+    const expired = this.route.snapshot.queryParamMap.get('expired') === '1';
+    if (expired) {
+      this.info.set('Сессия истекла, войдите заново.');
+    }
+  }
+
   async submit(): Promise<void> {
     this.error.set('');
     this.info.set('');

@@ -5,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UserProfileService } from '../../../core/services/user-profile.service';
@@ -24,7 +23,6 @@ import type { CreateUserResult } from '../create-user-dialog.component';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatListModule,
     MatDialogModule,
     MatSnackBarModule,
   ],
@@ -49,6 +47,31 @@ export class UsersListComponent {
   initialOf(u: UserProfile): string {
     const name = this.displayNameOf(u);
     return name ? name.charAt(0).toUpperCase() : '?';
+  }
+
+  lastLoginOf(u: UserProfile): string {
+    return this.formatDate(u.lastLoginAt);
+  }
+
+  lastAttendanceOf(u: UserProfile): string {
+    return this.formatDate(u.lastAttendanceUpdateAt);
+  }
+
+  private formatDate(iso?: string): string {
+    if (!iso) {
+      return '—';
+    }
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) {
+      return '—';
+    }
+    return d.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   goBack(): void {

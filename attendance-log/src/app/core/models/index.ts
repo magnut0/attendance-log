@@ -50,6 +50,8 @@ export interface UserProfile {
   photoUrl?: string;
   mustChangePassword?: boolean;
   tempPassword?: string;
+  lastLoginAt?: string;
+  lastAttendanceUpdateAt?: string;
 }
 
 export const TIME_SLOTS = ['8:30', '10:15', '12:10', '14:00', '15:45'] as const;

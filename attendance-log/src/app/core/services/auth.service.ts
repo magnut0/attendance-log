@@ -1,4 +1,5 @@
 import { Injectable, inject, computed, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -23,9 +24,58 @@ interface CreateUserParams {
   isSuperUser?: boolean;
 }
 
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_START_KEY = 'sessionStartedAt';
+const SESSION_CHECK_INTERVAL_MS = 60 * 1000;
+
+const hasStorage = (): boolean => typeof localStorage !== 'undefined';
+
+function readSessionStart(): number {
+  if (!hasStorage()) {
+    return 0;
+  }
+  const raw = localStorage.getItem(SESSION_START_KEY);
+  const ts = raw ? Number(raw) : NaN;
+  return isNaN(ts) ? 0 : ts;
+}
+
+function writeSessionStart(ts: number): void {
+  if (hasStorage()) {
+    localStorage.setItem(SESSION_START_KEY, String(ts));
+  }
+}
+
+function clearSessionStart(): void {
+  if (hasStorage()) {
+    localStorage.removeItem(SESSION_START_KEY);
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private profileService = inject(UserProfileService);
+  private router = inject(Router);
+
+  constructor() {
+    // Отслеживаем восстановление сессии и истечение её срока (7 дней).
+    this.authState$.subscribe((user) => {
+      if (!user) {
+        return;
+      }
+      if (this.isSessionExpired()) {
+        void this.forceLogout();
+        return;
+      }
+      if (!readSessionStart()) {
+        writeSessionStart(Date.now());
+      }
+    });
+    setInterval(() => {
+      if (this.isSessionExpired()) {
+        void this.forceLogout();
+      }
+    }, SESSION_CHECK_INTERVAL_MS);
+  }
 
   private authState$: Observable<User | null> = new Observable<User | null>((subscriber) => {
     return onAuthStateChanged(auth, (user) => subscriber.next(user));
@@ -65,13 +115,30 @@ export class AuthService {
     this.sessionPassword.set(password);
   }
 
+  private isSessionExpired(): boolean {
+    const start = readSessionStart();
+    return start > 0 && Date.now() - start > SESSION_TTL_MS;
+  }
+
+  private async forceLogout(): Promise<void> {
+    clearSessionStart();
+    this.sessionPassword.set(null);
+    await signOut(auth);
+    void this.router.navigate(['/login'], { queryParams: { expired: 1 } });
+  }
+
   async login(email: string, password: string): Promise<void> {
-    await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
     this.sessionPassword.set(password);
+    writeSessionStart(Date.now());
+    void this.profileService
+      .update(cred.user.uid, { lastLoginAt: new Date().toISOString() })
+      .catch(() => {});
   }
 
   logout(): Promise<void> {
     this.sessionPassword.set(null);
+    clearSessionStart();
     return signOut(auth);
   }
 

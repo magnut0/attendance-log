@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { doc, onSnapshot, setDoc, updateDoc, writeBatch, query, collection, where, getDoc, getDocs, runTransaction, type Firestore } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 import { ScheduleDay, AttendanceEntry, AttendanceRecord, DayFlags } from '../models';
 import { db } from './firestore';
 import { AuthService } from './auth.service';
+import { UserProfileService } from './user-profile.service';
 
 const dayRef = (groupId: string, date: string) =>
   doc(db, `scheduleDays/${groupId}_${date}`);
@@ -13,7 +14,20 @@ export interface PendingAttendance extends Map<string, Map<string, PendingAttend
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleDayService {
+  private profileService = inject(UserProfileService);
+
   constructor(private auth: AuthService) {}
+
+  /** Штампует время последнего обновления посещаемости текущим пользователем. */
+  private touchAttendanceUpdate(): void {
+    const uid = this.auth.user()?.uid;
+    if (!uid) {
+      return;
+    }
+    void this.profileService
+      .update(uid, { lastAttendanceUpdateAt: new Date().toISOString() })
+      .catch(() => {});
+  }
 
   listDaysForGroupAndMonth$(groupId: string, month: Date): Observable<Map<string, DayFlags>> {
     const start = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-01`;
@@ -101,6 +115,7 @@ export class ScheduleDayService {
         { merge: true },
       );
     }).catch((err) => console.error('toggleTimeSlot failed:', err));
+    this.touchAttendanceUpdate();
   }
 
   async toggleAttendance(groupId: string, date: string, studentId: string, timeSlot: string): Promise<void> {
@@ -142,6 +157,7 @@ export class ScheduleDayService {
         { merge: true },
       );
     }).catch((err) => console.error('toggleAttendance failed:', err));
+    this.touchAttendanceUpdate();
   }
 
   async setAttendanceForSlots(
@@ -192,6 +208,7 @@ export class ScheduleDayService {
         { merge: true },
       );
     }).catch((err) => console.error('setAttendanceForSlots failed:', err));
+    this.touchAttendanceUpdate();
   }
 
   async saveAll(
@@ -237,6 +254,7 @@ export class ScheduleDayService {
       attendance: merged,
     });
     await batch.commit();
+    this.touchAttendanceUpdate();
   }
 
   async toggleAccounted(groupId: string, date: string): Promise<void> {
@@ -247,6 +265,7 @@ export class ScheduleDayService {
       await this.initDay(groupId, date);
     }
     await updateDoc(ref, { accounted: !accounted });
+    this.touchAttendanceUpdate();
   }
 
   async toggleTransferred(groupId: string, date: string): Promise<void> {
@@ -257,6 +276,7 @@ export class ScheduleDayService {
       await this.initDay(groupId, date);
     }
     await updateDoc(ref, { transferred: !transferred });
+    this.touchAttendanceUpdate();
   }
 
   async markAll(
@@ -303,5 +323,6 @@ export class ScheduleDayService {
     }
 
     await batch.commit();
+    this.touchAttendanceUpdate();
   }
 }

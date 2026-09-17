@@ -16,28 +16,31 @@
   }
 
   <mat-card class="users-card">
-    <mat-list>
-      @for (u of users(); track u.uid) {
-        <mat-list-item class="user-item" (click)="openUser(u.uid)">
-          <div matListItemIcon class="avatar-circle">
-            @if (u.photoUrl) {
-              <img [src]="u.photoUrl" alt="аватар" />
-            } @else {
-              <span>{{ initialOf(u) }}</span>
-            }
-          </div>
-          <span matListItemTitle class="user-title">
-            {{ displayNameOf(u) }}
+    @for (u of users(); track u.uid) {
+      <div class="user-row" (click)="openUser(u.uid)">
+        <div class="avatar-circle">
+          @if (u.photoUrl) {
+            <img [src]="u.photoUrl" alt="аватар" />
+          } @else {
+            <span>{{ initialOf(u) }}</span>
+          }
+        </div>
+        <div class="user-info">
+          <div class="user-title">
+            <span class="user-name">{{ displayNameOf(u) }}</span>
             <span class="role-badge" [class.super]="u.isSuperUser">
               {{ u.isSuperUser ? 'Superuser' : 'Пользователь' }}
             </span>
-          </span>
-          <span matListItemLine class="user-email">{{ u.email }}</span>
-          <mat-icon matListItemMeta>chevron_right</mat-icon>
-        </mat-list-item>
-      } @empty {
-        <div class="empty">Пользователей пока нет</div>
-      }
-    </mat-list>
+          </div>
+          <div class="user-email">{{ u.email }}</div>
+          <div class="user-meta">
+            Вход: {{ lastLoginOf(u) }} · Посещаемость: {{ lastAttendanceOf(u) }}
+          </div>
+        </div>
+        <mat-icon class="chevron">chevron_right</mat-icon>
+      </div>
+    } @empty {
+      <div class="empty">Пользователей пока нет</div>
+    }
   </mat-card>
 </div>
