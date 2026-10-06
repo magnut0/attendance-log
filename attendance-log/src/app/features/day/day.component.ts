@@ -14,7 +14,7 @@ import { ScheduleDayService } from '../../core/services/schedule-day.service';
 import type { PendingAttendance } from '../../core/services/schedule-day.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TIME_SLOTS } from '../../core/models';
-import type { ScheduleDay } from '../../core/models';
+import type { ScheduleDay, Student } from '../../core/models';
 
 type PendingEntry = { present: boolean; modifiedBy: string; modifiedAt: string };
 
@@ -61,6 +61,15 @@ export class DayComponent {
   readonly sortedStudents = computed(() =>
     [...this.students()].sort((a, b) => a.lastName.localeCompare(b.lastName, 'ru')),
   );
+
+  displayName(s: Student): string {
+    const parts = [
+      s.lastName.trim(),
+      s.firstName.trim() ? `${s.firstName.trim()[0]}.` : '',
+      s.patronymic.trim() ? `${s.patronymic.trim()[0]}.` : '',
+    ].filter(Boolean);
+    return parts.join(' ');
+  }
 
   readonly pendingAttendance = signal<PendingAttendance>(new Map());
   readonly pendingDisabledSlots = signal<Set<string>>(new Set());

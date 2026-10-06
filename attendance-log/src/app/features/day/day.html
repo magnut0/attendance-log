@@ -31,7 +31,7 @@
     <tbody>
       @for (student of sortedStudents(); track student.id) {
         <tr [class.no-attendance]="isDayAccounted() && hasNoAttendance(student.id)">
-          <td class="name-cell">{{ student.lastName }} {{ student.firstName }} {{ student.patronymic }}</td>
+          <td class="name-cell">{{ displayName(student) }}</td>
           <td class="master-cell">
             <button
               type="button"
